@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Advanced jQuery demos showcasing DOM manipulation, events, plugins, jQuery UI, and sorting functionality.">
+  <title>Advanced jQuery Demos</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="js/jquery-3.7.1.min.js"><\/script>');
+    window.jQuery.ui || document.write('<script src="js/jquery-ui.min.js"><\/script>');
+  </script>
+  <style>
+    :root {
+      --primary: #00c4ff;
+      --background: #0a0a1a;
+      --card-bg: #1e1e2e;
+      --highlight: #009f4d;
+      --error: #c62828;
+      --light-bg: #f5f5f5;
+      --light-card: #ffffff;
+      --light-text: #333;
+      --light-border: #ddd;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--background);
+      color: #e0e0e0;
+      padding: 20px;
+      margin: 0;
+      line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    body.light-theme {
+      background: var(--light-bg);
+      color: var(--light-text);
+    }
+    body.light-theme section {
+      background: var(--light-card);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    body.light-theme h2 {
+      color: #007bff;
+      border-bottom: 2px solid #007bff;
+    }
+    body.light-theme button {
+      background: #007bff;
+      color: #fff;
+    }
+    body.light-theme button:hover, body.light-theme button:focus {
+      background: #0056b3;
+      transform: translateY(-2px);
+    }
+    body.light-theme input, body.light-theme #searchInput {
+      background: #fff;
+      border: 1px solid var(--light-border);
+      color: var(--light-text);
+    }
+    body.light-theme .box, body.light-theme .folder, body.light-theme .files,
+    body.light-theme .option, body.light-theme .card, body.light-theme .sortable-item {
+      background: #e9ecef;
+    }
+    body.light-theme .demo-block, body.light-theme .code-card pre {
+      background: #f8f9fa;
+      border-left: 3px solid #007bff;
+    }
+    section.header-card {
+    
+      top: 0;
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(0, 196, 255, 0.15);
+      z-index: 1000;
+      transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+    body.light-theme section.header-card {
+      background: var(--light-card);
+    }
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      gap: 5px;
+    }
+    .header-title {
+      font-size: 3em;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0;
+      text-align: center;
+    }
+    body.light-theme .header-title {
+      color: #007bff;
+    }
+    .header-title img {
+      height: 40px;
+      display: block;
+      margin: 0 auto;
+    }
+    .header-presented {
+      font-size: 1.5em;
+      color: #e0e0e0;
+      margin: 0;
+      text-align: center;
+    }
+    body.light-theme .header-presented {
+      color: var(--light-text);
+    }
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    #searchInput {
+      padding: 10px;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 4px;
+      border: 1px solid #555;
+      background: #2a2a3a;
+      color: #e0e0e0;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+    #searchInput:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    section {
+      margin-bottom: 50px;
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 196, 255, 0.15);
+      transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    }
+    section:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(0, 196, 255, 0.3);
+    }
+    h2 {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 8px;
+      margin-top: 0;
+      transition: color 0.3s ease, border-color 0.3s ease;
+    }
+    button {
+      margin: 10px 5px 0 0;
+      padding: 10px 16px;
+      background: var(--primary);
+      border: none;
+      color: #000;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    button:hover, button:focus {
+      background: #00a1d6;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+    }
+    input {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #555;
+      background: #2a2a3a;
+      color: #e0e0e0;
+      width: 100%;
+      box-sizing: border-box;
+      transition: background 0.3s ease, border 0.3s ease;
+    }
+    .box, .folder, .files, .option, .card, .draggable, .sortable-item {
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      background: #2a2a3a;
+      transition: background 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
+    }
+    .box:hover, .folder:hover, .option:hover, .card:hover, .draggable:hover, .sortable-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .highlight { background: var(--highlight) !important; }
+    .boom { background: var(--error) !important; color: #fff !important; }
+    .correct { background: #2e7d32 !important; }
+    .wrong { background: var(--error) !important; }
+    .tooltip {
+      position: fixed;
+      background: var(--primary);
+      color: #000;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+      font-size: 0.9em;
+      z-index: 1000;
+      max-width: 200px;
+      word-wrap: break-word;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      transition: opacity 0.2s ease;
+    }
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-bottom-color: var(--primary);
+    }
+    .demo-block, .code-card pre {
+      background: #12121c;
+      padding: 15px;
+      border-left: 3px solid var(--primary);
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      overflow-x: auto;
+      border-radius: 4px;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .code-card {
+      margin-top: 20px;
+    }
+    .code-card h3 {
+      color: var(--primary);
+      margin: 0 0 10px 0;
+      font-size: 1.2em;
+    }
+    .error-message {
+      color: var(--error);
+      font-size: 0.9em;
+      margin-top: 5px;
+      display: none;
+      transition: opacity 0.3s ease;
+    }
+    .theme-toggle {
+      position: static;
+      z-index: 1000;
+    }
+    .draggable, .sortable-item {
+      position: relative;
+      cursor: move;
+      user-select: none;
+      background: #2a2a3a;
+    }
+    .sortable-item {
+      cursor: grab;
+    }
+    .sortable-item.ui-sortable-helper {
+      opacity: 0.8;
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    .sortable-item.ui-sortable-helper:active {
+      cursor: grabbing;
+    }
+    #ajaxLoader .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--primary);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    #ajaxLoader[aria-busy="true"] .spinner {
+      display: block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      section { padding: 15px; }
+      button { width: 100%; margin: 8px 0; }
+      input, #searchInput { font-size: 16px; }
+      .tooltip { max-width: 150px; }
+      .code-card pre { font-size: 0.8em; }
+      section.header-card { padding: 15px; flex-direction: column; }
+      .header-title { font-size: 1.2em; }
+      .header-title img { height: 30px; }
+      .header-presented { font-size: 0.8em; }
+      .header-controls { flex-direction: column; gap: 10px; width: 100%; }
+      #searchInput { max-width: 100%; }
+    }
+    /* Accessibility */
+    [aria-hidden="true"] { display: none; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+    .jquery-logo {
+      display: block;
+      margin: 0 auto 30px;
+      max-width: 900px;
+      height: auto;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    :focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <section class="header-card" aria-labelledby="header-heading">
+    <h2 id="header-heading" class="sr-only">Demo Header</h2>
+    <div class="header-content">
+      <img src="jquery.png" alt="jQuery Logo" class="jquery-logo">
+      <h1 class="header-title">Advanced jQuery Demos</h1>
+      <p class="header-presented">Presented by Group 12</p>
+    </div>
+    <div class="header-controls">
+      <input type="search" id="searchInput" placeholder="Search demos..." aria-label="Search through demo sections">
+      <button class="theme-toggle" aria-label="Toggle theme between light and dark">🌙 Toggle Theme</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="recap-heading">
+    <h2 id="recap-heading">What We Covered Before</h2>
+    <p>This demo builds on previous concepts that we covered </p>
+    <iframe src="https://chaitanya-kk.github.io/WEB_DEV_jQuery/" width="1200px" height="700px" align="center"></iframe>
+    <h3>Now we explore advanced jQuery techniques for scalable, modular systems.</h3>
+  </section>
+
+  <section aria-labelledby="traversal-heading">
+    <h2 id="traversal-heading">1. DOM Traversal Enhancements</h2>
+    <p>Advanced traversal with <code>.has()</code> and <code>.end()</code> for hierarchical manipulation.</p>
+    <div class="folder" role="button" tabindex="0" aria-expanded="false" aria-controls="files">📁 Project Folder</div>
+    <div class="files" id="files" aria-hidden="true">
+      <div class="file">📄 report.docx</div>
+      <div class="file">📄 summary.txt</div>
+    </div>
+    <div class="code-card" aria-label="DOM Traversal Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$('.folder').on('click keydown', function(e) {
+  if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  const $this = $(this);
+  const $files = $this.next('.files');
+  $files.slideToggle(400, () => {
+    const isExpanded = $files.is(':visible');
+    $this.attr('aria-expanded', isExpanded);
+    $files.attr('aria-hidden', !isExpanded);
+  }).end().toggleClass('highlight');
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="events-heading">
+    <h2 id="events-heading">2. Namespaced Event Management</h2>
+    <p>Namespaces allow fine-grained control over event binding and unbinding.</p>
+    <div class="box" id="box" role="button" tabindex="0" aria-label="Toggle highlight">Click me</div>
+    <button id="startBtn">Enable Highlight</button>
+    <button id="stopBtn">Disable Highlight</button>
+    <div class="code-card" aria-label="Namespaced Events Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$('#startBtn').click(function() {
+  $('#box').on('click.highlightNS keydown.highlightNS', function(e) {
+    if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    $(this).toggleClass('highlight');
+  });
+});
+$('#stopBtn').click(function() {
+  $('#box').off('.highlightNS');
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="custom-events-heading">
+    <h2 id="custom-events-heading">3. Custom Event Architecture</h2>
+    <p>Define and trigger custom events like <code>box:explode</code> for decoupled functionality.</p>
+    <div class="box" id="customBox" role="status">Awaiting Action</div>
+    <button id="fireBtn">Trigger Explosion</button>
+    <div class="code-card" aria-label="Custom Events Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$('#fireBtn').click(() => $('#customBox').trigger('explode'));
+$('#customBox').on('explode', function() {
+  $(this).addClass('boom').text('💥 Exploded!').attr('aria-live', 'assertive');
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="form-heading">
+    <h2 id="form-heading">4. Mapping Inputs with <code>.map()</code></h2>
+    <p>Extract structured data from forms for API-ready objects.</p>
+    <form id="userForm" aria-describedby="form-error">
+      <label for="name">Name</label>
+      <input id="name" name="name" placeholder="Name" required>
+      <label for="email">Email</label>
+      <input id="email" name="email" placeholder="Email" type="email" required>
+      <button type="button" id="collectData">Generate Object</button>
+      <div id="form-error" class="error-message"></div>
+    </form>
+    <pre id="formDataOutput" aria-live="polite"></pre>
+    <div class="code-card" aria-label="Form Mapping Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$('#collectData').click(function() {
+  const $form = $('#userForm');
+  const $error = $('#form-error');
+  $error.hide();
+  try {
+    const data = $form.find('input').map(function() {
+      const value = $(this).val().trim();
+      if (!value) throw new Error(`Please fill in ${this.name}`);
+      return { [this.name]: value };
+    }).get();
+    $('#formDataOutput').text(JSON.stringify(data, null, 2));
+  } catch (err) {
+    $error.text(err.message).fadeIn(200);
+  }
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="async-heading">
+    <h2 id="async-heading">5. Coordinated Async with <code>$.when()</code></h2>
+    <p>Coordinate multiple asynchronous operations with <code>$.Deferred</code>.</p>
+    <div id="status" role="status">Initializing...</div>
+    <div class="code-card" aria-label="Async Coordination Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+const d1 = $.Deferred(), d2 = $.Deferred();
+setTimeout(() => d1.resolve('✔️ User Authenticated'), 1500);
+setTimeout(() => d2.resolve('✔️ Dashboard Loaded'), 3000);
+$.when(d1, d2).done((res1, res2) => {
+  $('#status').text(`${res1}\n${res2}`).attr('aria-live', 'assertive');
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="plugin-heading">
+    <h2 id="plugin-heading">6. jQuery Plugin Creation</h2>
+    <p>Create reusable plugins by extending <code>$.fn</code>.</p>
+    <div class="has-tip" data-tip="Dynamic Tooltip Info" role="button" tabindex="0">Hover or focus here</div>
+    <div class="code-card" aria-label="jQuery Plugin Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$.fn.tooltipster = function() {
+  function debounce(fn, wait) {
+    let timeout;
+    return function() {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, arguments), wait);
+    };
+  }
+  return this.each(function() {
+    const $el = $(this);
+    const tip = $el.attr('data-tip');
+    let $tooltip;
+    const updatePosition = debounce(() => {
+      if (!$tooltip) return;
+      const rect = $el[0].getBoundingClientRect();
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+      const windowHeight = $(window).height();
+      const tooltipHeight = $tooltip.outerHeight();
+      const topPosition = rect.bottom + scrollY + 10;
+      const bottomEdge = topPosition + tooltipHeight;
+      const finalTop = bottomEdge > scrollY + windowHeight ? rect.top + scrollY - tooltipHeight - 10 : topPosition;
+      $tooltip.css({
+        top: finalTop,
+        left: rect.left + scrollX + (rect.width / 2) - ($tooltip.outerWidth() / 2)
+      });
+    }, 50);
+    $el.on('mouseenter focus', function(e) {
+      $tooltip = $('<div class="tooltip"></div>').text(tip).appendTo('body');
+      updatePosition();
+      $tooltip.fadeIn(200);
+      $(window).on('resize.tooltip scroll.tooltip', updatePosition);
+    }).on('mouseleave blur', function() {
+      if ($tooltip) {
+        $tooltip.fadeOut(200, function() { $(this).remove(); });
+      }
+      $(window).off('.tooltip');
+    });
+  });
+};
+$('.has-tip').tooltipster();
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="wrapping-heading">
+    <h2 id="wrapping-heading">7. Structural Wrapping with <code>.wrapAll()</code></h2>
+    <p>Dynamically alter layout structure for theming or grouping.</p>
+    <div class="card">Card Alpha</div>
+    <div class="card">Card Beta</div>
+    <button id="wrapToggle">Toggle Layout Block</button>
+    <div class="code-card" aria-label="Structural Wrapping Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$('#wrapToggle').click(function() {
+  const $cards = $('.card');
+  if ($('.theme-block').length) {
+    $cards.unwrap();
+    $(this).text('Toggle Layout Block');
+  } else {
+    $cards.wrapAll('<div class="theme-block" style="border:1px dashed var(--primary); padding:10px; margin-top:10px;"></div>');
+    $(this).text('Remove Layout Block');
+  }
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="metadata-heading">
+    <h2 id="metadata-heading">8. Element Metadata via <code>.data()</code></h2>
+    <p>Store and retrieve state without polluting markup.</p>
+    <div class="option" data-correct="true" role="button" tabindex="0" aria-label="Option A">Option A</div>
+    <div class="option" data-correct="false" role="button" tabindex="0" aria-label="Option B">Option B</div>
+    <div class="code-card" aria-label="Element Metadata Code">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$('.option').on('click keydown', function(e) {
+  if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  const $this = $(this);
+  const correct = $this.data('correct');
+  $this.data('answered', true).addClass(correct ? 'correct' : 'wrong')
+       .attr('aria-label', correct ? 'Correct option' : 'Incorrect option');
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="iteration-heading">
+    <h2 id="iteration-heading">9. Practical Use of <code>.each()</code></h2>
+    <p>Safe iteration over jQuery collections for dynamic updates.</p>
+    <div class="box many">Box 1</div>
+    <div class="box many">Box 2</div>
+    <div class="box many">Box 3</div>
+    <button id="toggleEach">Toggle Highlight</button>
+    <div class="code-card">
+      <h3>Code</h3>
+      <pre><code lang="javascript">
+$('#toggleEach').click(() => {
+  $('.many').each(function() {
+    $(this).toggleClass('highlight');
+  });
+});
+      </code></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="ajax-heading">
+    <h2 id="ajax-heading">10. Ajax Global Event Hooks</h2>
+    <p>Track AJAX request lifecycles globally with <code>ajaxStart</code> and <code>ajaxStop</code>.</p>
+    <div id="ajaxLoader" role="status">Waiting...<div class="spinner"></div></div>
+    <button id="fakeAjax">Fetch Data</button>
+    <div class="error-message" id="ajax-error"></div>
+    <div class="code-card">
+      <h3 id="ajax">Code</h3>
+      <pre><code lang="javascript">
+$(document).ajaxStart(function() {
+  $('#ajaxLoader').text('Loading...').attr('aria-busy', 'true');
+}).ajaxStop(function() {
+  $('#ajaxLoader').text('Request completed').attr('aria-busy', 'false');
+}).ajaxError(function(event, jqXHR, settings, thrownError) {
+  $('#ajax-error').text(`Error: ${jqXHR.statusText || 'Request failed'}`).fadeIn('error').fadeIn(300);
+});
+$('#fakeAjax').on('click', function() => {
+  $('#ajax-error').hide();
+  $.ajax({
+    type: 'GET',
+    url: 'https://jsonplaceholder.typicode.com/posts/1',
+    timeout: 2000,
+    success: (data) => {
+      console.log('Success:', data);
+    },
+    error: () => {
+      $('#ajax-error').text('Error').fadeIn('Failed to fetch data');
+    }
+  });
+});
+      </code></pre>
+    </div>
+  </section>
+  <script>
+  $(document).ready(function() {
+    // 1. DOM Traversal Enhancements
+    $('.folder').on('click keydown', function(e) {
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      const $this = $(this);
+      const $files = $this.next('.files');
+      $files.slideToggle(400, () => {
+        const isExpanded = $files.is(':visible');
+        $this.attr('aria-expanded', isExpanded);
+        $files.attr('aria-hidden', !isExpanded);
+      }).end().toggleClass('highlight');
+    });
+
+    // 2. Namespaced Event Management
+    $('#startBtn').click(function() {
+      $('#box').on('click.highlightNS keydown.highlightNS', function(e) {
+        if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        $(this).toggleClass('highlight');
+      });
+    });
+    $('#stopBtn').click(function() {
+      $('#box').off('.highlightNS');
+    });
+
+    // 3. Custom Event Architecture
+    $('#fireBtn').click(() => $('#customBox').trigger('explode'));
+    $('#customBox').on('explode', function() {
+      $(this).addClass('boom').text('💥 Exploded!').attr('aria-live', 'assertive');
+    });
+
+    // 4. Mapping Inputs with .map()
+    $('#collectData').click(function() {
+      const $form = $('#userForm');
+      const $error = $('#form-error');
+      $error.hide();
+      try {
+        const data = $form.find('input').map(function() {
+          const value = $(this).val().trim();
+          if (!value) throw new Error(`Please fill in ${this.name}`);
+          return { [this.name]: value };
+        }).get();
+        $('#formDataOutput').text(JSON.stringify(data, null, 2));
+      } catch (err) {
+        $error.text(err.message).fadeIn(200);
+      }
+    });
+
+    // 5. Coordinated Async with $.when()
+    const d1 = $.Deferred(), d2 = $.Deferred();
+    setTimeout(() => d1.resolve('✔️ User Authenticated'), 1500);
+    setTimeout(() => d2.resolve('✔️ Dashboard Loaded'), 3000);
+    $.when(d1, d2).done((res1, res2) => {
+      $('#status').text(`${res1}\n${res2}`).attr('aria-live', 'assertive');
+    });
+
+    // 6. jQuery Plugin Creation
+    $.fn.tooltipster = function() {
+      function debounce(fn, wait) {
+        let timeout;
+        return function() {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(this, arguments), wait);
+        };
+      }
+      return this.each(function() {
+        const $el = $(this);
+        const tip = $el.attr('data-tip');
+        let $tooltip;
+        const updatePosition = debounce(() => {
+          if (!$tooltip) return;
+          const rect = $el[0].getBoundingClientRect();
+          const scrollY = window.scrollY;
+          const scrollX = window.scrollX;
+          const windowHeight = $(window).height();
+          const tooltipHeight = $tooltip.outerHeight();
+          const topPosition = rect.bottom + scrollY + 10;
+          const bottomEdge = topPosition + tooltipHeight;
+          const finalTop = bottomEdge > scrollY + windowHeight ? rect.top + scrollY - tooltipHeight - 10 : topPosition;
+          $tooltip.css({
+            top: finalTop,
+            left: rect.left + scrollX + (rect.width / 2) - ($tooltip.outerWidth() / 2)
+          });
+        }, 50);
+        $el.on('mouseenter focus', function(e) {
+          $tooltip = $('<div class="tooltip"></div>').text(tip).appendTo('body');
+          updatePosition();
+          $tooltip.fadeIn(200);
+          $(window).on('resize.tooltip scroll.tooltip', updatePosition);
+        }).on('mouseleave blur', function() {
+          if ($tooltip) {
+            $tooltip.fadeOut(200, function() { $(this).remove(); });
+          }
+          $(window).off('.tooltip');
+        });
+      });
+    };
+    $('.has-tip').tooltipster();
+
+    // 7. Structural Wrapping with .wrapAll()
+    $('#wrapToggle').click(function() {
+      const $cards = $('.card');
+      if ($('.theme-block').length) {
+        $cards.unwrap();
+        $(this).text('Toggle Layout Block');
+      } else {
+        $cards.wrapAll('<div class="theme-block" style="border:1px dashed var(--primary); padding:10px; margin-top:10px;"></div>');
+        $(this).text('Remove Layout Block');
+      }
+    });
+
+    // 8. Element Metadata via .data()
+    $('.option').on('click keydown', function(e) {
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      const $this = $(this);
+      const correct = $this.data('correct');
+      $this.data('answered', true).addClass(correct ? 'correct' : 'wrong')
+           .attr('aria-label', correct ? 'Correct option' : 'Incorrect option');
+    });
+
+    // 9. Practical Use of .each()
+    $('#toggleEach').click(() => {
+      $('.many').each(function() {
+        $(this).toggleClass('highlight');
+      });
+    });
+
+    // 10. Ajax Global Event Hooks
+    $(document).ajaxStart(function() {
+      $('#ajaxLoader').text('Loading...').attr('aria-busy', 'true');
+    }).ajaxStop(function() {
+      $('#ajaxLoader').text('Request completed').attr('aria-busy', 'false');
+    }).ajaxError(function(event, jqXHR, settings, thrownError) {
+      $('#ajax-error').text(`Error: ${jqXHR.statusText || 'Request failed'}`).fadeIn(300);
+    });
+    $('#fakeAjax').on('click', function() {
+      $('#ajax-error').hide();
+      $.ajax({
+        type: 'GET',
+        url: 'https://jsonplaceholder.typicode.com/posts/1',
+        timeout: 2000,
+        success: (data) => {
+          console.log('Success:', data);
+        },
+        error: () => {
+          $('#ajax-error').text('Failed to fetch data').fadeIn(300);
+        }
+      });
+    });
+
+    // Theme Toggle
+    $('.theme-toggle').on('click', function() {
+      $('body').toggleClass('light-theme');
+      const isLightTheme = $('body').hasClass('light-theme');
+      $(this).text(isLightTheme ? '🌙 Dark Theme' : '☀️ Light Theme');
+      $(this).attr('aria-label', isLightTheme ? 'Switch to dark theme' : 'Switch to light theme');
+    });
+  });
+  </script>
+</body>
+</html>

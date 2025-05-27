@@ -215,6 +215,21 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
       transition: opacity 0.2s ease;
     }
+    .bonus-btn {
+        font-family: 'Orbitron', sans-serif;
+        background: linear-gradient(to right, #3b82f6, #60a5fa);
+        color: #e5e7eb;
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background 0.3s ease;
+        cursor: pointer;
+    }
+    .bonus-btn:hover {
+        background: linear-gradient(to right, #2563eb, #3b82f6);
+    }
     .tooltip::after {
       content: '';
       position: absolute;
@@ -608,6 +623,9 @@ $('#fakeAjax').on('click', function() => {
 });
       </code></pre>
     </div>
+    <a href="bonus.html">
+    <button type="button" class="bonus-btn">Bonus ✨</button>
+</a>
   </section>
   <script>
   $(document).ready(function() {

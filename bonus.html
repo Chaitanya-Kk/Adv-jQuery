@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whac-a-Tech jQuery Demo</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #1a1a1a;
+            color: #e5e7eb;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .nav-scrolled {
+            background-color: rgba(17, 24, 39, 0.95);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #2d3748;
+            border: 1px solid #4b5563;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        #robot-section, #game-section {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            min-height: 600px;
+            overflow: hidden;
+        }
+        #robot-section iframe, #game-section iframe {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: none;
+            pointer-events: auto;
+        }
+        @media (max-width: 768px) {
+            #robot-section, #game-section {
+                height: 70vh;
+            }
+        }
+        .hero-overlay {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.7), rgba(59, 130, 246, 0.3));
+            pointer-events: none;
+        }
+        .game-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(17, 24, 39, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            pointer-events: none;
+            max-width: 300px;
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 w-full bg-transparent text-gray-200 p-4 z-50 transition-all duration-300">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Cywher</h1>
+            <ul class="flex space-x-6">
+                <li><a href="#home" class="hover:text-blue-400 transition-colors">Home</a></li>
+                <li><a href="#game" class="hover:text-blue-400 transition-colors">Game</a></li>
+                <li><a href="#features" class="hover:text-blue-400 transition-colors">Tech</a></li>
+                <li><a href="#contact" class="hover:text-blue-400 transition-colors">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Spline Robot Iframe -->
+    <section id="home" class="relative">
+        <div id="robot-section">
+            <iframe src='https://my.spline.design/robotfollowcursorforlandingpagemc-gUr8D0IObEMo4fBsSqFgFBsc/' frameborder='0'></iframe>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center hero-overlay">
+            <div class="text-center text-gray-100">
+                <h2 class="text-5xl font-bold mb-4 animate-fade-in">Robotics Revolution</h2>
+                <p class="text-xl mb-6 animate-fade-in delay-200">Explore cutting-edge AI and robotics with jQuery-powered interfaces</p>
+                <a href="#game" class="btn-primary text-white font-semibold py-2 px-6 rounded-full transition-colors">Hover Around</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Section with Whac-a-Thief Iframe -->
+    <section id="game" class="relative bg-gray-900">
+        <div id="game-section">
+            <iframe src='https://my.spline.design/gamewhacathief-S4DLTG2G796LCtz7W2djg66f/' frameborder='0'></iframe>
+        </div>
+        <div class="game-overlay">
+            <div class="text-left text-gray-100">
+                <h2 class="text-3xl font-bold mb-4 animate-fade-in">Whac-a-Tech Game</h2>
+                <p class="text-lg mb-6 animate-fade-in delay-200">Test your reflexes with our interactive robotics game</p>
+                <a href="#features" class="btn-primary text-white font-semibold py-2 px-6 rounded-full transition-colors pointer-events-auto">Explore More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">Tech Stack Used in this Bonus</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="card p-6 rounded-lg text-center">
+                    <h3 class="text-2xl font-semibold mb-4">Creativity</h3>
+                    <p>Look around you.</p>
+                </div>
+                <div class="card p-6 rounded-lg text-center">
+                    <h3 class="text-2xl font-semibold mb-4">jQuery</h3>
+                    <p>Seamless integration and Interactions.</p>
+                </div>
+                <div class="card p-6 rounded-lg text-center">
+                    <h3 class="text-2xl font-semibold mb-4">3D Visualization</h3>
+                    <p>Immersive Spline integration for real-time 3D models.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">Contact Our Team</h2>
+            <div class="max-w-md mx-auto">
+                <div id="contact-form">
+                    <input type="text" id="name" placeholder="Your Name" class="w-full p-3 mb-4 bg-gray-700 rounded-lg text-gray-200">
+                    <input type="email" id="email" placeholder="Your Email" class="w-full p-3 mb-4 bg-gray-700 rounded-lg text-gray-200">
+                    <textarea id="message" placeholder="Your Message" class="w-full p-3 mb-4 bg-gray-700 rounded-lg h-32 text-gray-200"></textarea>
+                    <button id="submit-btn" class="btn-primary text-white font-semibold py-2 px-6 rounded-full w-full transition-colors">Send Message</button>
+                </div>
+                <p id="form-message" class="mt-4 text-center"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-200 py-6">
+        <div class="container mx-auto text-center">
+            <p>© 2025 Whac-a-Tech. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            // Smooth scrolling for nav links
+            $('a[href*="#"]').on('click', function(e) {
+                e.preventDefault();
+                const target = $($(this).attr('href'));
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top
+                    }, 800);
+                }
+            });
+
+            // Navbar scroll effect
+            $(window).on('scroll', function() {
+                if ($(window).scrollTop() > 50) {
+                    $('#navbar').addClass('nav-scrolled');
+                } else {
+                    $('#navbar').removeClass('nav-scrolled');
+                }
+            });
+
+            // Animate elements on scroll
+            function animateOnScroll() {
+                $('.card').each(function() {
+                    const cardTop = $(this).offset().top;
+                    const windowBottom = $(window).scrollTop() + $(window).height();
+                    if (windowBottom > cardTop) {
+                        $(this).animate({ opacity: 1, top: 0 }, 600);
+                    }
+                });
+            }
+
+            // Initialize card animations
+            $('.card').css({ opacity: 0, position: 'relative', top: '50px' });
+            animateOnScroll();
+            $(window).on('scroll', animateOnScroll);
+
+            // Form submission
+            $('#submit-btn').on('click', function() {
+                const name = $('#name').val().trim();
+                const email = $('#email').val().trim();
+                const message = $('#message').val().trim();
+
+                if (!name || !email || !message) {
+                    $('#form-message').text('Please fill in all fields.').addClass('text-red-400');
+                    return;
+                }
+
+                if (!/^\S+@\S+\.\S+$/.test(email)) {
+                    $('#form-message').text('Please enter a valid email.').addClass('text-red-400');
+                    return;
+                }
+
+                // Simulate form submission
+                $('#form-message').text('Message sent successfully!').removeClass('text-red-400').addClass('text-green-400');
+                $('#contact-form').find('input, textarea').val('');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,557 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eCommerce Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <style>
+    /* Custom styles for enhanced aesthetics */
+    .hero-bg {
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.8), rgba(245, 158, 11, 0.7)), url('https://images.unsplash.com/photo-1555529771-835f59fc5efe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=500&q=80');
+      background-size: cover;
+      background-position: center;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+    .frosted-glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .product-card {
+      transition: all 0.4s ease;
+    }
+    .product-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+    .cta-button {
+      background: linear-gradient(90deg, #f59e0b, #f97316);
+      transition: all 0.3s ease;
+    }
+    .cta-button:hover {
+      background: linear-gradient(90deg, #d97706, #ea580c);
+      transform: scale(1.05);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    .category-card {
+      transition: all 0.3s ease;
+    }
+    .category-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body class="font-sans bg-gradient-to-br from-teal-50 to-amber-50 text-gray-800">
+  <!-- Navigation & Header -->
+  <header class="frosted-glass fixed w-full top-0 z-10 shadow-lg">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-teal-600">eStore</h1>
+      <nav class="hidden md:flex space-x-6">
+        <a href="#home" class="text-gray-800 hover:text-amber-500 transition">Home</a>
+        <a href="#products" class="text-gray-800 hover:text-amber-500 transition">Categories</a>
+        <a href="#products" class="text-gray-800 hover:text-amber-500 transition">Deals</a>
+        <a href="#" id="accountLink" class="text-gray-800 hover:text-amber-500 transition">Account</a>
+        <a href="#dashboard" class="text-gray-800 hover:text-amber-500 transition">Wishlist</a>
+      </nav>
+      <div class="flex items-center space-x-4">
+        <input type="search" id="searchBar" placeholder="Search..." class="border rounded-lg p-2 w-32 md:w-48 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white/80">
+        <a href="#cart" id="cart" class="text-gray-800 hover:text-amber-500">Cart (<span id="cartCount">0</span>)</a>
+        <button id="menuToggle" class="md:hidden text-gray-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <nav id="mobileMenu" class="hidden frosted-glass px-4 py-2 shadow-lg md:hidden">
+      <a href="#home" class="block py-2 text-gray-800 hover:text-amber-500">Home</a>
+      <a href="#products" class="block py-2 text-gray-800 hover:text-amber-500">Categories</a>
+      <a href="#products" class="block py-2 text-gray-800 hover:text-amber-500">Deals</a>
+      <a href="#" id="mobileAccountLink" class="block py-2 text-gray-800 hover:text-amber-500">Account</a>
+      <a href="#dashboard" class="block py-2 text-gray-800 hover:text-amber-500">Wishlist</a>
+    </nav>
+  </header>
+
+  <!-- Homepage: Hero Banner -->
+  <section id="home" class="hero-bg pt-20 pb-12 text-white">
+    <div class="container mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-5xl font-bold mb-4">Summer Sale - Up to 50% Off!</h2>
+      <p class="text-lg md:text-xl mb-6">Discover premium tech, fashion, and more with unbeatable deals.</p>
+      <a href="#products" class="cta-button text-white px-6 py-3 rounded-lg font-semibold pulse-animation">Shop Now</a>
+    </div>
+  </section>
+
+  <!-- Homepage: Top Categories -->
+  <section class="container mx-auto px-4 py-10">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-6 text-teal-700">Top Categories</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <a href="#products" class="category-card bg-white p-4 rounded-lg shadow-md text-center">
+        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150&q=80" class="w-full h-32 object-cover rounded-md" alt="Tech">
+        <p class="mt-2 font-semibold text-teal-600">Tech</p>
+      </a>
+      <a href="#products" class="category-card bg-white p-4 rounded-lg shadow-md text-center">
+        <img src="https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150&q=80" class="w-full h-32 object-cover rounded-md" alt="Fashion">
+        <p class="mt-2 font-semibold text-teal-600">Fashion</p>
+      </a>
+      <a href="#products" class="category-card bg-white p-4 rounded-lg shadow-md text-center">
+        <img src="https://images.unsplash.com/photo-1616046229478-9901c5536a45?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150&q=80" class="w-full h-32 object-cover rounded-md" alt="Home">
+        <p class="mt-2 font-semibold text-teal-600">Home</p>
+      </a>
+      <a href="#products" class="category-card bg-white p-4 rounded-lg shadow-md text-center">
+        <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150&q=80" class="w-full h-32 object-cover rounded-md" alt="Accessories">
+        <p class="mt-2 font-semibold text-teal-600">Accessories</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- Product Listing Page: Trending Products -->
+  <section id="products" class="container mx-auto px-4 py-10">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-6 text-teal-700">Trending Products</h2>
+    <div class="flex flex-col md:flex-row gap-6">
+      <div class="md:w-1/4">
+        <div class="frosted-glass p-4 rounded-lg shadow-md sticky top-24">
+          <h3 class="font-semibold mb-2 text-amber-600">Filters</h3>
+          <div class="mb-4">
+            <label class="block mb-1 text-gray-800">Price</label>
+            <input type="range" min="0" max="200" class="w-full accent-amber-500" id="priceFilter">
+            <p class="text-sm text-gray-600">$0 - $<span id="priceValue">200</span></p>
+          </div>
+          <div>
+            <label class="block mb-1 text-gray-800">Category</label>
+            <select id="categoryFilter" class="w-full border rounded-lg p-2 bg-white/80">
+              <option value="all">All</option>
+              <option value="tech">Tech</option>
+              <option value="fashion">Fashion</option>
+              <option value="home">Home</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="md:w-3/4">
+        <div class="flex justify-between mb-4">
+          <select id="sortFilter" class="border rounded-lg p-2 bg-white/80">
+            <option value="popularity">Sort: Popularity</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+          <div>
+            <button class="border rounded-lg p-2 bg-white/80 hover:bg-amber-100">Grid</button>
+            <button class="border rounded-lg p-2 ml-2 bg-white/80 hover:bg-amber-100">List</button>
+          </div>
+        </div>
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="tech" data-price="59.99">
+            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80" class="w-full h-48 object-cover rounded-md" alt="Wireless Headphones">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Wireless Headphones</h3>
+            <p class="text-gray-600">$59.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Wireless Headphones" data-price="59.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="tech" data-price="129.99">
+            <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80" class="w-full h-48 object-cover rounded-md" alt="Smart Watch">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Smart Watch</h3>
+            <p class="text-gray-600">$129.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Smart Watch" data-price="129.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="tech" data-price="199.99">
+            <img src="https://images.unsplash.com/photo-1660491083562-d91a64d6ea9c?q=80&w=2081&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-48 object-cover rounded-md" alt="Wireless Mouse">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Wireless Mouse</h3>
+            <p class="text-gray-600">$199.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Wireless Mouse" data-price="199.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="tech" data-price="89.99">
+            <img src="https://images.unsplash.com/photo-1572721546624-05bf65ad7679?q=80&w=1973&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-48 object-cover rounded-md" alt="USB-C Hub">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">USB-C Hub</h3>
+            <p class="text-gray-600">$89.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="USB-C Hub" data-price="89.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="fashion" data-price="89.99">
+            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80" class="w-full h-48 object-cover rounded-md" alt="Stylish Sneakers">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Stylish Sneakers</h3>
+            <p class="text-gray-600">$89.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Stylish Sneakers" data-price="89.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="fashion" data-price="49.99">
+            <img src="https://images.unsplash.com/photo-1664285612706-b32633c95820?q=80&w=1858&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-48 object-cover rounded-md" alt="Leather Belt">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Leather Belt</h3>
+            <p class="text-gray-600">$49.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Leather Belt" data-price="49.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="fashion" data-price="129.99">
+            <img src="https://images.unsplash.com/photo-1495105787522-5334e3ffa0ef?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-48 object-cover rounded-md" alt="Denim Jacket">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Denim Jacket</h3>
+            <p class="text-gray-600">$129.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Denim Jacket" data-price="129.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="home" data-price="34.99">
+            <img src="https://images.unsplash.com/photo-1621447980929-6638614633c8?q=80&w=1936&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-48 object-cover rounded-md" alt="Desk Lamp">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Desk Lamp</h3>
+            <p class="text-gray-600">$34.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Desk Lamp" data-price="34.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="home" data-price="99.99">
+            <img src="https://images.unsplash.com/photo-1691256676366-370303d55b61?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dGhyb3clMjBwaWxsb3d8ZW58MHx8MHx8fDA%3D" class="w-full h-48 object-cover rounded-md" alt="Throw Pillow">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Throw Pillow</h3>
+            <p class="text-gray-600">$99.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Throw Pillow" data-price="99.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="home" data-price="149.99">
+            <img src="https://images.unsplash.com/photo-1539975611936-f0d1221cfd16?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fHdhbGwlMjBhcnR8ZW58MHx8MHx8fDA%3D" class="w-full h-48 object-cover rounded-md" alt="Wall Art">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Wall Art</h3>
+            <p class="text-gray-600">$149.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Wall Art" data-price="149.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="accessories" data-price="39.99">
+            <img src="https://images.unsplash.com/photo-1721800419598-67f296c67b79?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bGFwdG9wJTIwYmFnfGVufDB8fDB8fHww" class="w-full h-48 object-cover rounded-md" alt="Laptop Bag">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Laptop Bag</h3>
+            <p class="text-gray-600">$39.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Laptop Bag" data-price="39.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="accessories" data-price="79.99">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80" class="w-full h-48 object-cover rounded-md" alt="Bluetooth Speaker">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Bluetooth Speaker</h3>
+            <p class="text-gray-600">$79.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Bluetooth Speaker" data-price="79.99">Add to Cart</button>
+          </div>
+          <div class="product-card bg-white rounded-lg shadow-md p-4" data-category="accessories" data-price="29.99">
+            <img src="https://images.unsplash.com/photo-1572635196237-14b3f281503f?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80" class="w-full h-48 object-cover rounded-md" alt="Sunglasses">
+            <h3 class="text-lg font-semibold mt-2 text-teal-600">Sunglasses</h3>
+            <p class="text-gray-600">$29.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-3" data-name="Sunglasses" data-price="29.99">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Login Prompt -->
+  <section id="login" class="container mx-auto px-4 py-10 hidden">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-6 text-teal-700">Login to Access Dashboard</h2>
+    <div class="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-gray-800">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" class="w-full p-2 border rounded-lg bg-white/80">
+        </div>
+        <div>
+          <label class="block text-gray-800">Password</label>
+          <input type="password" id="loginPass" placeholder="Password" class="w-full p-2 border rounded-lg bg-white/80">
+        </div>
+        <button id="loginBtn" class="cta-button text-white px-4 py-2 rounded-lg w-full">Login</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Dashboard -->
+  <section id="dashboard" class="container mx-auto px-4 py-10 hidden">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-6 text-teal-700">User Dashboard</h2>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <div class="flex flex-wrap border-b">
+        <button class="tab-btn px-4 py-2 font-semibold text-teal-600 border-b-2 border-teal-600" data-tab="orders">Recent Orders</button>
+        <button class="tab-btn px-4 py-2 font-semibold text-gray-600 hover:text-amber-500" data-tab="profile">Profile</button>
+        <button class="tab-btn px-4 py-2 font-semibold text-gray-600 hover:text-amber-500" data-tab="wishlist">Wishlist</button>
+        <button class="tab-btn px-4 py-2 font-semibold text-gray-600 hover:text-amber-500" data-tab="cart">Cart</button>
+      </div>
+      <div id="orders" class="tab-content active pt-4">
+        <h3 class="text-lg font-semibold text-teal-600 mb-4">Recent Orders</h3>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="font-semibold">Order #1234 - May 29, 2025</p>
+            <p class="text-gray-600">Wireless Headphones - $59.99</p>
+            <p class="text-gray-600">Status: Shipped</p>
+            <a href="#" class="text-amber-500 hover:underline">Track Order</a>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="font-semibold">Order #1235 - May 28, 2025</p>
+            <p class="text-gray-600">Smart Watch - $129.99</p>
+            <p class="text-gray-600">Status: Delivered</p>
+            <a href="#" class="text-amber-500 hover:underline">Track Order</a>
+          </div>
+        </div>
+      </div>
+      <div id="profile" class="tab-content pt-4">
+        <h3 class="text-lg font-semibold text-teal-600 mb-4">Profile Settings</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-gray-800">Name</label>
+            <input type="text" value="John Doe" class="w-full p-2 border rounded-lg bg-white/80" disabled>
+          </div>
+          <div>
+            <label class="block text-gray-800">Email</label>
+            <input type="email" value="john.doe@example.com" class="w-full p-2 border rounded-lg bg-white/80" disabled>
+          </div>
+          <div>
+            <label class="block text-gray-800">Address</label>
+            <input type="text" value="123 Main St, City, Country" class="w-full p-2 border rounded-lg bg-white/80" disabled>
+          </div>
+          <button class="cta-button text-white px-4 py-2 rounded-lg">Edit Profile</button>
+        </div>
+      </div>
+      <div id="wishlist" class="tab-content pt-4">
+        <h3 class="text-lg font-semibold text-teal-600 mb-4">Wishlist</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="font-semibold text-teal-600">Bluetooth Speaker</p>
+            <p class="text-gray-600">$79.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-2" data-name="Bluetooth Speaker" data-price="79.99">Add to Cart</button>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="font-semibold text-teal-600">Stylish Sneakers</p>
+            <p class="text-gray-600">$89.99</p>
+            <button class="add-to-cart cta-button text-white py-2 w-full rounded-lg mt-2" data-name="Stylish Sneakers" data-price="89.99">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+      <div id="cart" class="tab-content pt-4">
+        <h3 class="text-lg font-semibold text-teal-600 mb-4">Your Cart</h3>
+        <div id="cartItems" class="grid grid-cols-1 gap-4">
+          <p class="text-gray-600 italic" id="emptyCart">Your cart is empty</p>
+        </div>
+        <button class="cta-button text-white px-4 py-2 rounded-lg mt-4">Proceed to Checkout</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gradient-to-r from-teal-700 to-teal-900 text-white py-6">
+    <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-amber-300">eStore</h3>
+        <p class="hover:text-amber-300 cursor-pointer transition">About Us</p>
+        <p class="hover:text-amber-300 cursor-pointer transition">Contact</p>
+        <p class="hover:text-amber-300 cursor-pointer transition">Terms & Policies</p>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-amber-300">Support</h3>
+        <p class="hover:text-amber-300 cursor-pointer transition">FAQ</p>
+        <p class="hover:text-amber-300 cursor-pointer transition">Shipping</p>
+        <p class="hover:text-amber-300 cursor-pointer transition">Returns</p>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-amber-300">Stay Connected</h3>
+        <input type="email" placeholder="Newsletter" class="w-full p-2 rounded-lg text-gray-800 mb-2 bg-white/80">
+        <div class="flex space-x-4">
+          <a href="#" class="hover:text-amber-300 transition">Twitter</a>
+          <a href="#" class="hover:text-amber-300 transition">Facebook</a>
+          <a href="#" class="hover:text-amber-300 transition">Instagram</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-amber-300">Get the App</h3>
+        <p class="hover:text-amber-300 cursor-pointer transition">iOS App</p>
+        <p class="hover:text-amber-300 cursor-pointer transition">Android App</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    $(document).ready(function() {
+      // Cart storage
+      let cart = [];
+      let isLoggedIn = false;
+      const allProducts = $('#productGrid').children('.product-card').clone();
+
+      // Toggle mobile menu
+      $('#menuToggle').click(function() {
+        $('#mobileMenu').slideToggle('fast');
+      });
+
+      // Account link to show login, then dashboard
+      $('#accountLink, #mobileAccountLink').click(function(e) {
+        e.preventDefault();
+        if (!isLoggedIn) {
+          $('#login').removeClass('hidden');
+          $('#dashboard').addClass('hidden');
+          $('html, body').animate({ scrollTop: $('#login').offset().top }, 500);
+        } else {
+          $('#login').addClass('hidden');
+          $('#dashboard').removeClass('hidden');
+          $('html, body').animate({ scrollTop: $('#dashboard').offset().top }, 500);
+        }
+      });
+
+      // Simple login simulation
+      $('#loginBtn').click(function() {
+        const email = $('#loginEmail').val();
+        const pass = $('#loginPass').val();
+        if (email && pass) {
+          isLoggedIn = true;
+          $('#login').addClass('hidden');
+          $('#dashboard').removeClass('hidden');
+          $('html, body').animate({ scrollTop: $('#dashboard').offset().top }, 500);
+          alert('Logged in successfully!');
+        } else {
+          alert('Please enter email and password!');
+        }
+      });
+
+      // Update price filter display
+      $('#priceFilter').on('input', function() {
+        $('#priceValue').text($(this).val()).fadeIn(200);
+        filterProducts();
+      });
+
+      // Filter products by category and sort
+      $('#categoryFilter, #sortFilter').on('change', function() {
+        filterProducts();
+      });
+
+      function filterProducts() {
+        const maxPrice = parseFloat($('#priceFilter').val());
+        const category = $('#categoryFilter').val();
+        const sort = $('#sortFilter').val();
+        
+        // Clear the grid
+        $('#productGrid').empty();
+        
+        // Filter products
+        let products = allProducts.clone().filter(function() {
+          const price = parseFloat($(this).data('price'));
+          const prodCategory = $(this).data('category');
+          const priceMatch = price <= maxPrice;
+          const categoryMatch = category === 'all' || prodCategory === category;
+          return priceMatch && categoryMatch;
+        }).get();
+
+        // Sort products
+        if (sort === 'price-low') {
+          products.sort(function(a, b) {
+            return parseFloat($(a).data('price')) - parseFloat($(b).data('price'));
+          });
+        } else if (sort === 'price-high') {
+          products.sort(function(a, b) {
+            return parseFloat($(b).data('price')) - parseFloat($(a).data('price'));
+          });
+        }
+
+        // Update product grid
+        if (products.length === 0) {
+          $('#productGrid').append('<p class="text-gray-600 italic col-span-full text-center" id="noProducts">No products found</p>');
+        } else {
+          $('#productGrid').append(products);
+          // Re-attach event listeners to cloned buttons
+          $('.add-to-cart').off('click').on('click', function() {
+            const name = $(this).data('name');
+            const price = $(this).data('price');
+            cart.push({ name: name, price: price });
+            $('#cartCount').text(cart.length).css('color', '#f59e0b').animate({ fontSize: '1.2em' }, 200, function() {
+              $(this).animate({ fontSize: '1em' }, 200);
+            });
+            updateCartDisplay();
+            alert(`Added ${name} ($${price}) to cart!`);
+          });
+        }
+      }
+
+      // Add to cart functionality
+      $('.add-to-cart').on('click', function() {
+        const name = $(this).data('name');
+        const price = $(this).data('price');
+        cart.push({ name: name, price: price });
+        $('#cartCount').text(cart.length).css('color', '#f59e0b').animate({ fontSize: '1.2em' }, 200, function() {
+          $(this).animate({ fontSize: '1em' }, 200);
+        });
+        updateCartDisplay();
+        alert(`Added ${name} ($${price}) to cart!`);
+      });
+
+      // Update cart display
+      function updateCartDisplay() {
+        $('#cartItems').empty();
+        if (cart.length === 0) {
+          $('#cartItems').append('<p class="text-gray-600 italic" id="emptyCart">Your cart is empty</p>');
+        } else {
+          cart.forEach(function(item) {
+            $('#cartItems').append(
+              `<div class="bg-gray-50 p-4 rounded-lg">
+                <p class="font-semibold text-teal-600">${item.name}</p>
+                <p class="text-gray-600">$${item.price}</p>
+              </div>`
+            );
+          });
+        }
+      }
+
+      // Basic search placeholder
+      $('#searchBar').on('input', function() {
+        const query = $(this).val();
+        if (query.length > 2) {
+          console.log('Searching for: ' + query);
+          $(this).addClass('ring-2 ring-amber-500');
+        } else {
+          $(this).removeClass('ring-2 ring-amber-500');
+        }
+      });
+
+      // Tab functionality for dashboard
+      $('.tab-btn').click(function() {
+        $('.tab-btn').removeClass('text-teal-600 border-b-2 border-teal-600').addClass('text-gray-600 hover:text-amber-500');
+        $(this).removeClass('text-gray-600 hover:text-amber-500').addClass('text-teal-600 border-b-2 border-teal-600');
+        $('.tab-content').removeClass('active');
+        const tabId = $(this).data('tab');
+        $('#' + tabId).addClass('active');
+      });
+    });
+  </script>
+</body>
+</html>
